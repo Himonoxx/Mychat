@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Room;
 use App\Chatmessage;
+use Auth;
 
 class RoomsController extends Controller
 {
@@ -52,6 +53,12 @@ class RoomsController extends Controller
         $room->name = $request->name;
         $room->save();
         
+        //部屋を新規作成した場合、ログインユーザーのroom_idを新規作成したroom_idに書き換える。
+        $user = Auth::user();
+        $user->room_id = $room->id;
+        $user->save();
+        
+        
         $chatmessage = new Chatmessage;
         $chatmessages = Chatmessage::orderBy('id')->where('room_id',$request->room_id)->get();
         
@@ -70,16 +77,27 @@ class RoomsController extends Controller
      */
     public function show($id)
     {
-        $room = Room::find($id);
-        $chatmessage = new Chatmessage;
-        $chatmessages = Chatmessage::orderBy('id')->where('room_id',$id)->get();
-        
-        return view('rooms.show',[
-            'room' => $room,
-            'chatmessages' => $chatmessages,
-            'chatmessage' => $chatmessage,
-            ]);
-        
+        if (Auth::check()){
+            
+            $room = Room::find($id);
+            $chatmessage = new Chatmessage;
+            $chatmessages = $room->chatmessages()->get();
+            
+            //ログインユーザーのroom_idに入室した部屋idを紐づける。
+            $user = Auth::user;
+            $user->room_id = $room->id;
+            $user->save();
+            
+            return view('rooms.show',[
+                'room' => $room,
+                'chatmessages' => $chatmessages,
+                'chatmessage' => $chatmessage,
+                ]);
+            
+        } else {
+            
+            return redirect('/');
+        }
     }
 
     /**
