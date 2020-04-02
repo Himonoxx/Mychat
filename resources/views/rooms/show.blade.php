@@ -7,7 +7,13 @@
               <h1 class="panel-title">Room name : {{ $room->name }}</h1>
           </div>
           <div class="panel-body">
-              {!! Form::model($chatmessage, ['route' => 'chatmessages.store', $room->id]) !!}
+            <ul class="list-group list-group-flush">
+              @foreach($chatmessages as $msg)
+                <li class="list-group-item">{{ $msg->content }}</li>
+              @endforeach
+            </ul>
+
+              {!! Form::model($chatmessage, ['route' => 'chatmessages.store']) !!}
               <div class="form-group col-sm-12">
                   {!! Form::label('content', 'message') !!}
                   {!! Form::text('content', null, ['class' => 'form-control']) !!}

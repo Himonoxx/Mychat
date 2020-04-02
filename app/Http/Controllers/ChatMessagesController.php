@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Chatmessage;
 use Auth;
+use App\Room;
 
 class ChatMessagesController extends Controller
 {
@@ -40,31 +41,31 @@ class ChatMessagesController extends Controller
             
         $chatmessage = new Chatmessage;
         $user = Auth::user();
-        dd($request);
+        
         $user->chatmessages()->create([
             
             'content' => $request->content,
-            'room_id' => $request->room_id,
+            'room_id' => $user->room_id,
             
             ]);
         
         //メッセージ保存後に最新の状態をDBから取得する。    
-        $chatmessages = Chatmessage::orderBy('id')->where('room_id',$request->room_id)->get(); 
+        $chatmessages = Chatmessage::orderBy('id')->where('room_id',$user->room_id)->get();
+        
+        //ログインユーザーのroom_idを使用して現在の部屋を取得
+        $room = Room::find($user->room_id);
+        
+        //インスタンスを初期化する。
+        $chatmessage = null;
             
             return view('rooms.show',[
                 'chatmessages' => $chatmessages,
                 'chatmessage' => $chatmessage,
+                'room' => $room,
                 ]);
             
         }else{
-            
-            $chatmessage = new Chatmessage;
-            $chatmessage = Chatmessage::orderBy('id')->where('room_id',$request->room_id)->get();
-            
-            return view('rooms.show',[
-                'chatmessages' => $chatmessages,
-                'chatmessage' => $chatmessage,
-                ]);
+            return redirect('/');
         }
         
         
